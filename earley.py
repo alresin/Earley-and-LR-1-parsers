@@ -6,6 +6,9 @@ from utils import Rule, Grammar
 from checker import check
 
 
+REAL_START = '#'
+
+
 def debug_print(D: List[Set[Configuration]]):
     for i, di in enumerate(len(D)):
         print(f'D{i}:')
@@ -22,23 +25,23 @@ class Earley:
             self.i = i
             self.point_position = point_position
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             return f'({self.rule.left}->{self.rule.right[:self.point_position]}.{self.rule.right[self.point_position:]}, {self.i})'
 
-        def __str__(self):
+        def __str__(self) -> str:
             return self.__repr__()
 
-        def __eq__(self, other):
+        def __eq__(self, other: Configuration) -> bool:
             if isinstance(other, type(self)):
                 return ((self.rule == other.rule) and
                         (self.i == other.i) and
                         (self.point_position == other.point_position))
             return False
 
-        def __ne__(self, other):
+        def __ne__(self, other: Configuration) -> bool:
             return not self.__eq__(other)
 
-        def __hash__(self):
+        def __hash__(self) -> int:
             return hash((self.rule, self.i, self.point_position))
 
     def __init__(self) -> Earley:
@@ -49,7 +52,7 @@ class Earley:
 
     def predict(self, word: str) -> bool:
         D = [set() for i in range(len(word) + 1)]
-        D[0] = set([self.Configuration(Rule('#', self.grammar.start,), 0, 0)])
+        D[0] = set([self.Configuration(Rule(REAL_START, self.grammar.start,), 0, 0)])
         while True:
             new_dj = self._complete(D, 0)
             not_changed = (new_dj == D[0])
@@ -72,7 +75,7 @@ class Earley:
                 if not_changed:
                     break
 
-        return self.Configuration(Rule('#', self.grammar.start), 0, 1) in D[len(word)]
+        return self.Configuration(Rule(REAL_START, self.grammar.start), 0, 1) in D[len(word)]
 
 
     def _scan(self, D: List[Set[self.Configuration]], j: int, letter: str) -> None:
