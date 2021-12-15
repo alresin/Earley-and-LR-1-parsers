@@ -133,58 +133,68 @@ class Earley:
     def predict(self, word: str) -> bool:
         D = [set() for i in range(len(word) + 1)]
         D[0] = set([self.Configuration(Rule(REAL_START, self.grammar.start,), 0, 0)])
-        while True:
-            new_dj = self._complete(D, 0)
-            not_changed = (new_dj == D[0])
-            D[0] = new_dj
-            new_dj = self._predict(D, 0)
-            not_changed = not_changed and (new_dj == D[0])
-            D[0] = new_dj
-            if not_changed:
-                break
+        for i in range(len(word) + 1):
+            current_D = [x for x in D[i]]
+            conf_index = 0
+            count = 0
+            while conf_index < len(current_D):
+                count += 1
+                conf = current_D[conf_index]
+                if len(conf.rule.right) != conf.point_position:
+                    if ((len(conf.rule.right) > conf.point_position) and
+                            (conf.rule.right[conf.point_position] not in self.grammar.terms)):
+                        self._predict(conf, D, i, current_D)
+                    elif i < len(word):
+                        self._scan(conf, D, i, word[i])
+                else:
+                    D[i] = set(current_D)
+                    self._complete(conf, D, i, current_D)
+                conf_index += 1
 
-        for index, letter in enumerate(word):
-            self._scan(D, index, letter)
-            while True:
-                new_dj = self._complete(D, index + 1)
-                not_changed = (new_dj == D[index + 1])
-                D[index + 1] = new_dj
-                new_dj = self._predict(D, index + 1)
-                not_changed = not_changed and (new_dj == D[index + 1])
-                D[index + 1] = new_dj
-                if not_changed:
-                    break
+            D[i] = set(current_D)
 
         return self.Configuration(Rule(REAL_START, self.grammar.start), 0, 1) in D[len(word)]
 
+    def _scan(self, conf: self.Configuration, D: List[Set[self.Configuration]],
+              j: int, letter: str) -> None:
+        if ((len(conf.rule.right) > conf.point_position) and
+                (conf.rule.right[conf.point_position] == letter)):
+            D[j + 1].add(self.Configuration(conf.rule, conf.i, conf.point_position + 1))
 
-    def _scan(self, D: List[Set[self.Configuration]], j: int, letter: str) -> None:
-        for conf in D[j]:
+    def _predict(self, conf: Configuration, D: List[Set[self.Configuration]],
+                 j: int, current_D: List[self.Configuration]) -> List[self.Configuration]:
+        for rule in self.grammar.rules():
             if ((len(conf.rule.right) > conf.point_position) and
-                    (self.grammar.is_terminal(conf.rule.right[conf.point_position])) and
-                    (conf.rule.right[conf.point_position] == letter)):
-                D[j + 1].add(self.Configuration(conf.rule, conf.i, conf.point_position + 1))
+                    (conf.rule.right[conf.point_position] == rule.left)):
+                if self.Configuration(rule, conf.i, 0) not in D[j]:
+                    current_D.append(self.Configuration(rule, j, 0))
+                    D[j].add(self.Configuration(rule, j, 0))
 
-    def _predict(self, D: List[Set[self.Configuration]], j: int) -> Set[self.Configuration]:
-        new_dj = copy(D[j])
-        for conf in D[j]:
-            for rule in self.grammar.rules():
-                if ((len(conf.rule.right) > conf.point_position) and
-                        (rule.left == conf.rule.right[conf.point_position])):
-                    new_dj.add(self.Configuration(rule, j, 0))
-        return new_dj
-
-    def _complete(self, D: List[Set[self.Configuration]], j: int) -> Set[self.Configuration]:
-        new_dj = copy(D[j])
-        for conf in D[j]:
-            if conf.point_position == len(conf.rule.right):
-                for prev_conf in D[conf.i]:
-                    if ((len(prev_conf.rule.right) > prev_conf.point_position) and
-                            (conf.rule.left == prev_conf.rule.right[prev_conf.point_position])):
-                        new_dj.add(self.Configuration(prev_conf.rule,
-                                                      prev_conf.i,
-                                                      prev_conf.point_position + 1))
-        return new_dj
+    def _complete(self, conf: Configuration, D: List[Set[self.Configuration]],
+                  j: int, current_D: List[self.Configuration]) -> Set[self.Configuration]:
+        if j != conf.i:
+            for prev_conf in D[conf.i]:
+                if ((len(prev_conf.rule.right) > prev_conf.point_position) and
+                        (prev_conf.rule.right[prev_conf.point_position] == conf.rule.left)):
+                    if self.Configuration(prev_conf.rule, prev_conf.i,
+                                          prev_conf.point_position + 1) not in D[j]:
+                        current_D.append(self.Configuration(prev_conf.rule, prev_conf.i,
+                                                            prev_conf.point_position + 1))
+                        D[j].add(self.Configuration(prev_conf.rule, prev_conf.i,
+                                                    prev_conf.point_position + 1))
+        else:
+            prev_conf_index = 0
+            while prev_conf_index < len(current_D):
+                prev_conf = current_D[prev_conf_index]
+                if ((len(prev_conf.rule.right) > prev_conf.point_position) and
+                        (prev_conf.rule.right[prev_conf.point_position] == conf.rule.left)):
+                    if self.Configuration(prev_conf.rule, prev_conf.i,
+                                          prev_conf.point_position + 1) not in D[j]:
+                        current_D.append(self.Configuration(prev_conf.rule, prev_conf.i,
+                                                            prev_conf.point_position + 1))
+                        D[j].add(self.Configuration(prev_conf.rule, prev_conf.i,
+                                                    prev_conf.point_position + 1))
+                prev_conf_index += 1
 
 
 if __name__ == '__main__':
