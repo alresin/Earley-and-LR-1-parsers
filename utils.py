@@ -26,11 +26,10 @@ class Rule:
 
 
 class Grammar:
-    _rules = set()
-
     def __init__(self, nonterms: Set[str], terms: Set[str]) -> Grammar:
         self.nonterms = nonterms
         self.terms = terms
+        self._rules = set()
 
     def add_rule(self, rule: Rule) -> None:
         self._rules.add(rule)

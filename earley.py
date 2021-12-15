@@ -10,7 +10,7 @@ REAL_START = '#'
 
 
 def debug_print(D: List[Set[Configuration]]):
-    for i, di in enumerate(len(D)):
+    for i, di in enumerate(D):
         print(f'D{i}:')
         for conf in di:
             print(conf)
@@ -58,7 +58,7 @@ class Earley:
             not_changed = (new_dj == D[0])
             D[0] = new_dj
             new_dj = self._predict(D, 0)
-            not_changed = (new_dj == D[0])
+            not_changed = not_changed and (new_dj == D[0])
             D[0] = new_dj
             if not_changed:
                 break
