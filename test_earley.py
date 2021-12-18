@@ -1,14 +1,12 @@
 import pytest
+
+from conftest import fixture
 from utils import Rule, Grammar
 from earley import Earley
 
 
-def test_algo_bracket_sequences_same():
-    grammar = Grammar({*'S'}, {*'()'})
-    for rule in {Rule('S', '(S)S'), Rule('S', '')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'S'}, terms={*'()'}, rules={Rule('S', '(S)S'), Rule('S', '')}, start='S')
+def test_algo_bracket_sequences_same(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('')     == True
@@ -22,12 +20,9 @@ def test_algo_bracket_sequences_same():
     assert algo.predict(')()(') == False
 
 
-def test_algo_bracket_sequences_mixed():
-    grammar = Grammar({*'S'}, {*'()[]{}'})
-    for rule in {Rule('S', '(S)S'), Rule('S', '[S]S'), Rule('S', '{S}S'), Rule('S', '')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'S'}, terms={*'()[]{}'},
+         rules={Rule('S', '(S)S'), Rule('S', '[S]S'), Rule('S', '{S}S'), Rule('S', '')}, start='S')
+def test_algo_bracket_sequences_mixed(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('')       == True
@@ -38,12 +33,9 @@ def test_algo_bracket_sequences_mixed():
     assert algo.predict('([]){}') == True
 
 
-def test_algo_a_star():
-    grammar = Grammar({*'S'}, {*'a'})
-    for rule in {Rule('S', 'aS'), Rule('S', '')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'S'}, terms={*'a'},
+         rules={Rule('S', 'aS'), Rule('S', '')}, start='S')
+def test_algo_a_star(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('')   == True
@@ -52,12 +44,9 @@ def test_algo_a_star():
     assert algo.predict('ab') == False
 
 
-def test_algo_aB():
-    grammar = Grammar({*'SB'}, {*'ab'})
-    for rule in {Rule('S', 'aB'), Rule('B', 'b'), Rule('B','ba')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'SB'}, terms={*'ab'},
+         rules={Rule('S', 'aB'), Rule('B', 'b'), Rule('B','ba')}, start='S')
+def test_algo_aB(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('ab')   == True
@@ -70,12 +59,9 @@ def test_algo_aB():
     assert algo.predict('aba ') == False
 
 
-def test_algo_aSbS():
-    grammar = Grammar({*'S'}, {*'ab'})
-    for rule in {Rule('S', 'aSbS'), Rule('S', '')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'S'}, terms={*'ab'},
+         rules={Rule('S', 'aSbS'), Rule('S', '')}, start='S')
+def test_algo_aSbS(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('aababb')       == True
@@ -95,12 +81,11 @@ def test_algo_aSbS():
     assert algo.predict(' ')            == False
 
 
-def test_algo_aFb():
-    grammar = Grammar({*'SFG'}, {*'ab'})
-    for rule in {Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', ''), Rule('F', 'Ga'), Rule('G', 'bSG')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'SFG'}, terms={*'ab'},
+         rules={Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', ''), Rule('F', 'Ga'),
+                Rule('G', 'bSG')},
+         start='S')
+def test_algo_aFb_with_G(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('aabb')       == True
@@ -116,12 +101,27 @@ def test_algo_aFb():
     assert algo.predict('baa')        == False
 
 
-def test_algo_AS():
-    grammar = Grammar({*'SA'}, {*'ab'})
-    for rule in {Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', '')}:
-        grammar.add_rule(rule)
+@fixture(nonterms={*'SFG'}, terms={*'ab'},
+         rules={Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', '')}, start='S')
+def test_algo_aFb(grammar):
+    algo = Earley()
+    algo.fit(grammar)
+    assert algo.predict('aabb')       == True
+    assert algo.predict('abab')       == True
+    assert algo.predict('ababab')     == False
+    assert algo.predict('aabbab')     == True
+    assert algo.predict('aabbaaabbb') == True
+    assert algo.predict('a')          == False
+    assert algo.predict('aa')         == False
+    assert algo.predict('aabbb')      == False
+    assert algo.predict('aabb ')      == False
+    assert algo.predict('ba')         == False
+    assert algo.predict('baa')        == False
 
-    grammar.start = 'A'
+
+@fixture(nonterms={*'SA'}, terms={*'ab'},
+         rules={Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', '')}, start='A')
+def test_algo_AS(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('aababb')       == True
@@ -141,12 +141,9 @@ def test_algo_AS():
     assert algo.predict(' ')            == False
 
 
-def test_algo_aSbS_and_bSaS():
-    grammar = Grammar({*'SA'}, {*'ab'})
-    for rule in {Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', 'bSaS'), Rule('S', '')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'A'
+@fixture(nonterms={*'SA'}, terms={*'ab'},
+         rules={Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', 'bSaS'), Rule('S', '')}, start='A')
+def test_algo_aSbS_and_bSaS(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('aababb')       == True
@@ -170,12 +167,9 @@ def test_algo_aSbS_and_bSaS():
     assert algo.predict('bababab')      == False
 
 
-def test_algo_SaSb():
-    grammar = Grammar({*'SA'}, {*'ab'})
-    for rule in {Rule('S', 'SaSb'), Rule('S', '')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'SA'}, terms={*'ab'},
+         rules={Rule('S', 'SaSb'), Rule('S', '')}, start='S')
+def test_algo_SaSb(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('aabbab')       == True
@@ -199,12 +193,9 @@ def test_algo_SaSb():
     assert algo.predict('bababab')      == False
 
 
-def test_algo_ABC():
-    grammar = Grammar({*'SBC'}, {*'abc'})
-    for rule in {Rule('S', 'Bb'), Rule('B', 'a'), Rule('S', 'Cc'), Rule('C', 'a')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'SBC'}, terms={*'abc'},
+         rules={Rule('S', 'Bb'), Rule('B', 'a'), Rule('S', 'Cc'), Rule('C', 'a')}, start='S')
+def test_algo_ABC(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('ab')           == True
@@ -228,12 +219,9 @@ def test_algo_ABC():
     assert algo.predict('bababab')      == False
 
 
-def test_algo_SBC():
-    grammar = Grammar({*'SBC'}, {*'abc'})
-    for rule in {Rule('S', 'B'), Rule('B', 'baa'), Rule('S', ''), Rule('B', 'baaa')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'SBC'}, terms={*'abc'},
+         rules={Rule('S', 'B'), Rule('B', 'baa'), Rule('S', ''), Rule('B', 'baaa')}, start='S')
+def test_algo_SBC(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('baa')          == True
@@ -256,12 +244,9 @@ def test_algo_SBC():
     assert algo.predict('bababab')      == False
 
 
-def test_algo_BC():
-    grammar = Grammar({*'SBC'}, {*'abc'})
-    for rule in {Rule('S', 'B'), Rule('B', 'baa'), Rule('S', 'C'), Rule('C', 'baa')}:
-        grammar.add_rule(rule)
-
-    grammar.start = 'S'
+@fixture(nonterms={*'SBC'}, terms={*'abc'},
+         rules={Rule('S', 'B'), Rule('B', 'baa'), Rule('S', 'C'), Rule('C', 'baa')}, start='S')
+def test_algo_BC(grammar):
     algo = Earley()
     algo.fit(grammar)
     assert algo.predict('baa')          == True
@@ -282,3 +267,22 @@ def test_algo_BC():
     assert algo.predict('abba')         == False
     assert algo.predict('babababa')     == False
     assert algo.predict('bababab')      == False
+
+
+@fixture(nonterms={*'SAB'}, terms={*'abc'},
+         rules={Rule('S', 'SABSBASABAABSSSAAABBBSSSBBBAAAabc'), Rule('S', ''),
+                Rule('A', ''), Rule('B', '')}, start='S')
+def test_algo_SABS(grammar):
+    algo = Earley()
+    algo.fit(grammar)
+    assert algo.predict('abc')       == True
+    assert algo.predict('a')         == False
+    assert algo.predict('b')         == False
+    assert algo.predict('c')         == False
+    assert algo.predict('bc')        == False
+    assert algo.predict('ab')        == False
+    assert algo.predict('ac')        == False
+    assert algo.predict('abcabc')    == True
+    assert algo.predict('abcabcabc') == True
+    assert algo.predict('abcab')     == False
+    assert algo.predict('')          == True

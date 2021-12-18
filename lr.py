@@ -135,7 +135,7 @@ class LR:
                     if ((len(conf.rule.right) > conf.point_position) and
                             (conf.rule.right[conf.point_position] == rule.left)):
                         for next_symbol in self.first(conf.rule.right[conf.point_position + 1:] +
-                                                      conf.next_symbol):
+                                                      conf.next_symbol, set()):
                             if self.Configuration(rule, next_symbol, 0) not in new_node.confs:
                                 new_node.confs.add(self.Configuration(rule, next_symbol, 0))
                                 changed = True
@@ -174,24 +174,40 @@ class LR:
         for symbol in self.nodes[i].children:
             self.fill_table(self.nodes[i].children[symbol], used)
 
-    def first(self, w: str) -> Set[str]:
+    def first(self, w: str, current_opened) -> Set[str]:
+        if w in current_opened:
+            return set()
+        current_opened.add(w)
         if len(w) == 0:
             return set()
-        result = {w[0]}
+        result = [w[0]]
+        result_set = {w[0]}
         if self.grammar.is_terminal(w):
-            return result
+            return result_set
         changed = True
         while changed:
             changed = False
-            for u in result:
+            u_index = 0
+            while u_index < len(result):
+                u = result[u_index]
                 if self.grammar.is_terminal(u):
                     break
                 for rule in self.grammar.rules():
                     if rule.left == u:
-                        changed = True
-                        result.remove(u)
-                        result.add(rule.right[:1])
-        return result
+                        if u in result_set:
+                            changed = True
+                            result_set.discard(u)
+                        if ((u != rule.right[:1]) and
+                                (rule.right[:1] not in result_set)):
+                            changed = True
+                            result_set.add(rule.right[:1])
+                            result.append(rule.right[:1])
+                u_index += 1
+
+        if '' in result_set:
+            result_set.remove('')
+            result_set.update(self.first(w[1:], current_opened))
+        return result_set
 
 
 if __name__ == '__main__':
