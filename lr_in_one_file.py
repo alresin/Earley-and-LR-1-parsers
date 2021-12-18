@@ -1,10 +1,9 @@
-from __future__ import annotations
 from copy import deepcopy as copy
 from typing import Set
 
 
 class Rule:
-    def __init__(self, left: str, right: str) -> Rule:
+    def __init__(self, left: str, right: str):
         self.left = left
         self.right = right
 
@@ -14,12 +13,12 @@ class Rule:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def __eq__(self, other: Rule) -> bool:
+    def __eq__(self, other) -> bool:
         if isinstance(other, Rule):
             return (self.left == other.left) and (self.right == other.right)
         return False
 
-    def __ne__(self, other: Rule) -> bool:
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
     def __hash__(self) -> int:
@@ -27,18 +26,18 @@ class Rule:
 
 
 class Grammar:
-    def __init__(self, nonterms: Set[str], terms: Set[str]) -> Grammar:
+    def __init__(self, nonterms: Set[str], terms: Set[str]):
         self.nonterms = nonterms
         self.terms = terms
         self._rules = set()
 
-    def add_rule(self, rule: Rule) -> None:
+    def add_rule(self, rule) -> None:
         self._rules.add(rule)
 
     def is_terminal(self, letter: str) -> bool:
         return letter in self.terms
 
-    def rules(self) -> Set[Rule]:
+    def rules(self):
         return self._rules
 
     def is_ks(self) -> bool:
@@ -48,7 +47,7 @@ class Grammar:
         return True
 
 
-def check(algorithm: Union[Earley, LR]) -> None:
+def check(algorithm) -> None:
     try:
         nonterm_count, term_count, rules_count = [int(x) for x in input().split()]
         nonterms = {x for x in input()}
@@ -91,25 +90,25 @@ END_SYMBOL = '$'
 
 
 class LR:
-    def __init__(self) -> LR:
+    def __init__(self):
         self.grammar = None
         self.nodes = None
         self.table = None
 
     class Configuration:
-        def __init__(self, rule: Rule, next_symbol: str, point_position: int) -> Configuration:
+        def __init__(self, rule: Rule, next_symbol: str, point_position: int):
             self.rule = rule
             self.next_symbol = next_symbol
             self.point_position = point_position
 
-        def __eq__(self, other: Configuration) -> bool:
+        def __eq__(self, other) -> bool:
             if isinstance(other, type(self)):
                 return ((self.rule == other.rule) and
                         (self.next_symbol == other.next_symbol) and
                         (self.point_position == other.point_position))
             return False
 
-        def __ne__(self, other: Configuration) -> bool:
+        def __ne__(self, other) -> bool:
             return not self.__eq__(other)
 
         def __hash__(self) -> int:
@@ -123,7 +122,7 @@ class LR:
             return self.__repr__()
 
     class Node:
-        def __init__(self) -> Node:
+        def __init__(self):
             self.children = {}
             self.confs = set()
 
@@ -133,16 +132,16 @@ class LR:
         def __str__(self) -> str:
             return self.__repr__()
 
-        def __eq__(self, other: Node) -> bool:
+        def __eq__(self, other) -> bool:
             if isinstance(other, type(self)):
                 return self.confs == other.confs
             return False
 
-        def __ne__(self, other: Node) -> bool:
+        def __ne__(self, other) -> bool:
             return not self.__eq__(other)
 
     class Shift:
-        def __init__(self, to: int) -> Shift:
+        def __init__(self, to: int):
             self.to = to
 
         def __repr__(self) -> str:
@@ -152,7 +151,7 @@ class LR:
             return self.__repr__()
 
     class Reduce:
-        def __init__(self, rule: Rule) -> Reduce:
+        def __init__(self, rule: Rule):
             self.rule = rule
 
         def __repr__(self) -> str:
@@ -205,7 +204,7 @@ class LR:
                 i += 1
         return False
 
-    def closure(self, node: self.Node) -> self.Node:
+    def closure(self, node):
         changed = True
         while changed:
             new_node = copy(node)

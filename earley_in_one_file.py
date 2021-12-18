@@ -1,10 +1,9 @@
-from __future__ import annotations
 from copy import deepcopy as copy
-from typing import Set, List
+from typing import Set, List, Union
 
 
 class Rule:
-    def __init__(self, left: str, right: str) -> Rule:
+    def __init__(self, left: str, right: str):
         self.left = left
         self.right = right
 
@@ -14,12 +13,12 @@ class Rule:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def __eq__(self, other: Rule) -> bool:
+    def __eq__(self, other) -> bool:
         if isinstance(other, Rule):
             return (self.left == other.left) and (self.right == other.right)
         return False
 
-    def __ne__(self, other: Rule) -> bool:
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
     def __hash__(self) -> int:
@@ -27,7 +26,7 @@ class Rule:
 
 
 class Grammar:
-    def __init__(self, nonterms: Set[str], terms: Set[str]) -> Grammar:
+    def __init__(self, nonterms: Set[str], terms: Set[str]):
         self.nonterms = nonterms
         self.terms = terms
         self._rules = set()
@@ -48,7 +47,7 @@ class Grammar:
         return True
 
 
-def check(algorithm: Union[Earley, LR]) -> None:
+def check(algorithm) -> None:
     try:
         nonterm_count, term_count, rules_count = [int(x) for x in input().split()]
         nonterms = {x for x in input()}
@@ -90,7 +89,7 @@ REAL_START = '#'
 
 class Earley:
     class Configuration:
-        def __init__(self, rule: Rule, i: int, point_position: int) -> Configuration:
+        def __init__(self, rule: Rule, i: int, point_position: int):
             self.rule = rule
             self.i = i
             self.point_position = point_position
@@ -101,20 +100,20 @@ class Earley:
         def __str__(self) -> str:
             return self.__repr__()
 
-        def __eq__(self, other: Configuration) -> bool:
+        def __eq__(self, other) -> bool:
             if isinstance(other, type(self)):
                 return ((self.rule == other.rule) and
                         (self.i == other.i) and
                         (self.point_position == other.point_position))
             return False
 
-        def __ne__(self, other: Configuration) -> bool:
+        def __ne__(self, other) -> bool:
             return not self.__eq__(other)
 
         def __hash__(self) -> int:
             return hash((self.rule, self.i, self.point_position))
 
-    def __init__(self) -> Earley:
+    def __init__(self):
         self.grammar = None
 
     def fit(self, grammar: Grammar) -> None:
@@ -148,14 +147,14 @@ class Earley:
         return self.Configuration(Rule(REAL_START, self.grammar.start), 0, 1) in D[len(word)]
 
 
-    def _scan(self, D: List[Set[self.Configuration]], j: int, letter: str) -> None:
+    def _scan(self, D, j: int, letter: str) -> None:
         for conf in D[j]:
             if ((len(conf.rule.right) > conf.point_position) and
                     (self.grammar.is_terminal(conf.rule.right[conf.point_position])) and
                     (conf.rule.right[conf.point_position] == letter)):
                 D[j + 1].add(self.Configuration(conf.rule, conf.i, conf.point_position + 1))
 
-    def _predict(self, D: List[Set[self.Configuration]], j: int) -> Set[self.Configuration]:
+    def _predict(self, D, j: int):
         new_dj = copy(D[j])
         for conf in D[j]:
             for rule in self.grammar.rules():
@@ -164,7 +163,7 @@ class Earley:
                     new_dj.add(self.Configuration(rule, j, 0))
         return new_dj
 
-    def _complete(self, D: List[Set[self.Configuration]], j: int) -> Set[self.Configuration]:
+    def _complete(self, D, j: int):
         new_dj = copy(D[j])
         for conf in D[j]:
             if conf.point_position == len(conf.rule.right):
