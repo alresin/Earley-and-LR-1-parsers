@@ -90,7 +90,7 @@ class Earley:
             D[j + 1].add(self.Configuration(conf.rule, conf.i, conf.point_position + 1, conf.parent))
 
     def _predict(self, conf: Configuration, D: List[Set[self.Configuration]],
-                 j: int, current_D: List[self.Configuration]) -> List[self.Configuration]:
+                 j: int, current_D: List[self.Configuration]) -> None:
         for rule in self.grammar.rules():
             if ((len(conf.rule.right) > conf.point_position) and
                     (conf.rule.right[conf.point_position] == rule.left)):
@@ -100,30 +100,38 @@ class Earley:
                     D[j].add(adding_conf)
 
     def _complete(self, conf: Configuration, D: List[Set[self.Configuration]],
-                  j: int, current_D: List[self.Configuration]) -> Set[self.Configuration]:
+                  j: int, current_D: List[self.Configuration]) -> None:
         if j != conf.i:
-            for prev_conf in D[conf.i]:
-                if ((len(prev_conf.rule.right) > prev_conf.point_position) and
-                        (prev_conf.rule.right[prev_conf.point_position] == conf.rule.left)):
-                    adding_conf = self.Configuration(prev_conf.rule, prev_conf.i,
-                                                     prev_conf.point_position + 1,
-                                                     prev_conf.parent)
-                    if adding_conf not in D[j]:
-                        current_D.append(adding_conf)
-                        D[j].add(adding_conf)
+            self._complete_for_previous(conf, D, j, current_D)
         else:
-            prev_conf_index = 0
-            while prev_conf_index < len(current_D):
-                prev_conf = current_D[prev_conf_index]
-                if ((len(prev_conf.rule.right) > prev_conf.point_position) and
-                        (prev_conf.rule.right[prev_conf.point_position] == conf.rule.left)):
-                    adding_conf = self.Configuration(prev_conf.rule, prev_conf.i,
-                                                     prev_conf.point_position + 1,
-                                                     prev_conf.parent)
-                    if adding_conf not in D[j]:
-                        current_D.append(adding_conf)
-                        D[j].add(adding_conf)
-                prev_conf_index += 1
+            self._complete_for_same(conf, D, j, current_D)
+            
+    def _complete_for_previous(self, conf: Configuration, D: List[Set[self.Configuration]],
+                               j: int, current_D: List[self.Configuration]) -> None:
+        for prev_conf in D[conf.i]:
+            if ((len(prev_conf.rule.right) > prev_conf.point_position) and
+                    (prev_conf.rule.right[prev_conf.point_position] == conf.rule.left)):
+                adding_conf = self.Configuration(prev_conf.rule, prev_conf.i,
+                                                 prev_conf.point_position + 1,
+                                                 prev_conf.parent)
+                if adding_conf not in D[j]:
+                    current_D.append(adding_conf)
+                    D[j].add(adding_conf)
+
+    def _complete_for_same(self, conf: Configuration, D: List[Set[self.Configuration]],
+                           j: int, current_D: List[self.Configuration]) -> None:
+        prev_conf_index = 0
+        while prev_conf_index < len(current_D):
+            prev_conf = current_D[prev_conf_index]
+            if ((len(prev_conf.rule.right) > prev_conf.point_position) and
+                    (prev_conf.rule.right[prev_conf.point_position] == conf.rule.left)):
+                adding_conf = self.Configuration(prev_conf.rule, prev_conf.i,
+                                                 prev_conf.point_position + 1,
+                                                 prev_conf.parent)
+                if adding_conf not in D[j]:
+                    current_D.append(adding_conf)
+                    D[j].add(adding_conf)
+            prev_conf_index += 1
 
 
 if __name__ == '__main__':
