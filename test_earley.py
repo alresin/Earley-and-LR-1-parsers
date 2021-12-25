@@ -1,11 +1,14 @@
 import pytest
 
-from conftest import fixture
+from conftest import grammar
 from utils import Rule, Grammar
 from earley import Earley
 
 
-@fixture(nonterms={*'S'}, terms={*'()'}, rules={Rule('S', '(S)S'), Rule('S', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'S'}])
+@pytest.mark.parametrize('terms', [{*'()'}])
+@pytest.mark.parametrize('rules', [{Rule('S', '(S)S'), Rule('S', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_bracket_sequences_same(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -20,8 +23,11 @@ def test_algo_bracket_sequences_same(grammar):
     assert algo.predict(')()(') == False
 
 
-@fixture(nonterms={*'S'}, terms={*'()[]{}'},
-         rules={Rule('S', '(S)S'), Rule('S', '[S]S'), Rule('S', '{S}S'), Rule('S', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'S'}])
+@pytest.mark.parametrize('terms', [{*'()[]{}'}])
+@pytest.mark.parametrize('rules', [{Rule('S', '(S)S'), Rule('S', '[S]S'), Rule('S', '{S}S'),
+                                    Rule('S', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_bracket_sequences_mixed(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -33,8 +39,10 @@ def test_algo_bracket_sequences_mixed(grammar):
     assert algo.predict('([]){}') == True
 
 
-@fixture(nonterms={*'S'}, terms={*'a'},
-         rules={Rule('S', 'aS'), Rule('S', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'S'}])
+@pytest.mark.parametrize('terms', [{*'a'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'aS'), Rule('S', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_a_star(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -44,8 +52,11 @@ def test_algo_a_star(grammar):
     assert algo.predict('ab') == False
 
 
-@fixture(nonterms={*'SB'}, terms={*'ab'},
-         rules={Rule('S', 'aB'), Rule('B', 'b'), Rule('B','ba')}, start='S')
+
+@pytest.mark.parametrize('nonterms', [{*'SB'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'aB'), Rule('B', 'b'), Rule('B','ba')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_aB(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -59,8 +70,10 @@ def test_algo_aB(grammar):
     assert algo.predict('aba ') == False
 
 
-@fixture(nonterms={*'S'}, terms={*'ab'},
-         rules={Rule('S', 'aSbS'), Rule('S', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'S'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'aSbS'), Rule('S', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_aSbS(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -81,10 +94,11 @@ def test_algo_aSbS(grammar):
     assert algo.predict(' ')            == False
 
 
-@fixture(nonterms={*'SFG'}, terms={*'ab'},
-         rules={Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', ''), Rule('F', 'Ga'),
-                Rule('G', 'bSG')},
-         start='S')
+@pytest.mark.parametrize('nonterms', [{*'SFG'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', ''),
+                                    Rule('F', 'Ga'), Rule('G', 'bSG')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_aFb_with_G(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -101,8 +115,10 @@ def test_algo_aFb_with_G(grammar):
     assert algo.predict('baa')        == False
 
 
-@fixture(nonterms={*'SFG'}, terms={*'ab'},
-         rules={Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SFG'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'aFbF'), Rule('F', 'aFb'), Rule('F', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_aFb(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -119,8 +135,10 @@ def test_algo_aFb(grammar):
     assert algo.predict('baa')        == False
 
 
-@fixture(nonterms={*'SA'}, terms={*'ab'},
-         rules={Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', '')}, start='A')
+@pytest.mark.parametrize('nonterms', [{*'SA'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', '')}])
+@pytest.mark.parametrize('start', 'A')
 def test_algo_AS(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -141,8 +159,11 @@ def test_algo_AS(grammar):
     assert algo.predict(' ')            == False
 
 
-@fixture(nonterms={*'SA'}, terms={*'ab'},
-         rules={Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', 'bSaS'), Rule('S', '')}, start='A')
+@pytest.mark.parametrize('nonterms', [{*'SA'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('A', 'S'), Rule('S', 'aSbS'), Rule('S', 'bSaS'),
+                                    Rule('S', '')}])
+@pytest.mark.parametrize('start', 'A')
 def test_algo_aSbS_and_bSaS(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -167,8 +188,10 @@ def test_algo_aSbS_and_bSaS(grammar):
     assert algo.predict('bababab')      == False
 
 
-@fixture(nonterms={*'SA'}, terms={*'ab'},
-         rules={Rule('S', 'SaSb'), Rule('S', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SA'}])
+@pytest.mark.parametrize('terms', [{*'ab'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'SaSb'), Rule('S', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_SaSb(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -193,8 +216,11 @@ def test_algo_SaSb(grammar):
     assert algo.predict('bababab')      == False
 
 
-@fixture(nonterms={*'SBC'}, terms={*'abc'},
-         rules={Rule('S', 'Bb'), Rule('B', 'a'), Rule('S', 'Cc'), Rule('C', 'a')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SBC'}])
+@pytest.mark.parametrize('terms', [{*'abc'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'Bb'), Rule('B', 'a'), Rule('S', 'Cc'),
+                                    Rule('C', 'a')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_ABC(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -219,8 +245,11 @@ def test_algo_ABC(grammar):
     assert algo.predict('bababab')      == False
 
 
-@fixture(nonterms={*'SBC'}, terms={*'abc'},
-         rules={Rule('S', 'B'), Rule('B', 'baa'), Rule('S', ''), Rule('B', 'baaa')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SBC'}])
+@pytest.mark.parametrize('terms', [{*'abc'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'B'), Rule('B', 'baa'), Rule('S', ''),
+                                    Rule('B', 'baaa')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_SBC(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -244,8 +273,11 @@ def test_algo_SBC(grammar):
     assert algo.predict('bababab')      == False
 
 
-@fixture(nonterms={*'SBC'}, terms={*'abc'},
-         rules={Rule('S', 'B'), Rule('B', 'baa'), Rule('S', 'C'), Rule('C', 'baa')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SBC'}])
+@pytest.mark.parametrize('terms', [{*'abc'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'B'), Rule('B', 'baa'), Rule('S', 'C'),
+                                    Rule('C', 'baa')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_BC(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -269,9 +301,11 @@ def test_algo_BC(grammar):
     assert algo.predict('bababab')      == False
 
 
-@fixture(nonterms={*'SAB'}, terms={*'abc'},
-         rules={Rule('S', 'SABSBASABAABSSSAAABBBSSSBBBAAAabc'), Rule('S', ''),
-                Rule('A', ''), Rule('B', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SAB'}])
+@pytest.mark.parametrize('terms', [{*'abc'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'SABSBASABAABSSSAAABBBSSSBBBAAAabc'), Rule('S', ''),
+                                    Rule('A', ''), Rule('B', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_SABS(grammar):
     algo = Earley()
     algo.fit(grammar)
@@ -288,9 +322,11 @@ def test_algo_SABS(grammar):
     assert algo.predict('')          == True
 
 
-@fixture(nonterms={*'SAB'}, terms={*'abc'},
-         rules={Rule('S', 'SABBAabc'), Rule('S', ''),
-                Rule('A', ''), Rule('B', '')}, start='S')
+@pytest.mark.parametrize('nonterms', [{*'SAB'}])
+@pytest.mark.parametrize('terms', [{*'abc'}])
+@pytest.mark.parametrize('rules', [{Rule('S', 'SABBAabc'), Rule('S', ''), Rule('A', ''),
+                                    Rule('B', '')}])
+@pytest.mark.parametrize('start', 'S')
 def test_algo_SAB(grammar):
     algo = Earley()
     algo.fit(grammar)
