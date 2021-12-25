@@ -40,7 +40,7 @@ class Grammar:
     def rules(self) -> Set[Rule]:
         return self._rules
 
-    def is_ks(self) -> bool:
+    def is_context_free(self) -> bool:
         for rule in self._rules:
             if (len(rule.left) != 1) or (rule.left not in self.nonterms):
                 return False

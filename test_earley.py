@@ -286,3 +286,22 @@ def test_algo_SABS(grammar):
     assert algo.predict('abcabcabc') == True
     assert algo.predict('abcab')     == False
     assert algo.predict('')          == True
+
+
+@fixture(nonterms={*'SAB'}, terms={*'abc'},
+         rules={Rule('S', 'SABBAabc'), Rule('S', ''),
+                Rule('A', ''), Rule('B', '')}, start='S')
+def test_algo_SAB(grammar):
+    algo = Earley()
+    algo.fit(grammar)
+    assert algo.predict('abc')       == True
+    assert algo.predict('a')         == False
+    assert algo.predict('b')         == False
+    assert algo.predict('c')         == False
+    assert algo.predict('bc')        == False
+    assert algo.predict('ab')        == False
+    assert algo.predict('ac')        == False
+    assert algo.predict('abcabc')    == True
+    assert algo.predict('abcabcabc') == True
+    assert algo.predict('abcab')     == False
+    assert algo.predict('')          == True

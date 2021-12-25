@@ -14,6 +14,7 @@ class LR:
     def __init__(self) -> LR:
         self.grammar = None
         self.nodes = None
+        self.nodes_set = None
         self.table = None
 
     class Configuration:
@@ -61,6 +62,9 @@ class LR:
         def __ne__(self, other: Node) -> bool:
             return not self.__eq__(other)
 
+        def __hash__(self) -> int:
+            return hash(tuple(self.confs))
+
     class Shift:
         def __init__(self, to: int) -> Shift:
             self.to = to
@@ -86,8 +90,9 @@ class LR:
         self.nodes = [self.Node()]
         self.nodes[0].confs.add(self.Configuration(Rule(REAL_START, grammar.start),
                                                    END_SYMBOL, 0))
-        i = 0
         self.nodes[0] = self.closure(self.nodes[0])
+        self.nodes_set = {self.nodes[0]}
+        i = 0
         while i < len(self.nodes):
             processed = set()
             for conf in self.nodes[i].confs:
@@ -105,23 +110,27 @@ class LR:
         stack = [0]
         i = 0
         while i < len(word):
-            if word[i] not in self.table[stack[-1]]:
+            alpha = word[i]
+            stack_back = stack[-1]
+            if alpha not in self.table[stack_back]:
                 return False
-            if isinstance(self.table[stack[-1]][word[i]], self.Reduce):
-                if self.table[stack[-1]][word[i]].rule == Rule(REAL_START, self.grammar.start):
+            if isinstance(self.table[stack_back][alpha], self.Reduce):
+                if self.table[stack_back][alpha].rule == Rule(REAL_START, self.grammar.start):
                     if i == (len(word) - 1):
                         return True
                     return False
-                if (len(self.table[stack[-1]][word[i]].rule.right) * 2) >= len(stack):
+                if (len(self.table[stack_back][alpha].rule.right) * 2) >= len(stack):
                     return False
-                next_stack_elem = self.table[stack[-1]][word[i]].rule.left
-                stack = stack[:len(stack) - (len(self.table[stack[-1]][word[i]].rule.right) * 2)]
+                next_stack_elem = self.table[stack_back][alpha].rule.left
+                rule_len = len(self.table[stack_back][alpha].rule.right)
+                stack = stack[:len(stack) - (rule_len * 2)]
+                stack_back = stack[-1]
                 stack.append(next_stack_elem)
-                stack.append(self.table[stack[-2]][stack[-1]].to)
+                stack.append(self.table[stack_back][next_stack_elem].to)
 
-            elif isinstance(self.table[stack[-1]][word[i]], self.Shift):
-                stack.append(word[i])
-                stack.append(self.table[stack[-2]][word[i]].to)
+            elif isinstance(self.table[stack_back][alpha], self.Shift):
+                stack.append(alpha)
+                stack.append(self.table[stack_back][alpha].to)
                 i += 1
         return False
 
@@ -152,8 +161,9 @@ class LR:
                                                       conf.next_symbol,
                                                       conf.point_position + 1))
         new_node = self.closure(new_node)
-        if new_node not in self.nodes:
+        if new_node not in self.nodes_set:
             self.nodes.append(new_node)
+            self.nodes_set.add(new_node)
         if char in self.nodes[i].children:
             raise Exception('Not LR(1) grammar')
         self.nodes[i].children[char] = self.nodes.index(new_node)
@@ -174,7 +184,7 @@ class LR:
         for symbol in self.nodes[i].children:
             self.fill_table(self.nodes[i].children[symbol], used)
 
-    def first(self, w: str, current_opened) -> Set[str]:
+    def first(self, w: str, current_opened: Set[str]) -> Set[str]:
         if w in current_opened:
             return set()
         current_opened.add(w)
@@ -189,25 +199,31 @@ class LR:
             changed = False
             u_index = 0
             while u_index < len(result):
-                u = result[u_index]
-                if self.grammar.is_terminal(u):
+                alpha = result[u_index]
+                if self.grammar.is_terminal(alpha):
                     break
-                for rule in self.grammar.rules():
-                    if rule.left == u:
-                        if u in result_set:
-                            changed = True
-                            result_set.discard(u)
-                        if ((u != rule.right[:1]) and
-                                (rule.right[:1] not in result_set)):
-                            changed = True
-                            result_set.add(rule.right[:1])
-                            result.append(rule.right[:1])
+                changed = changed or self._add_non_terminal_first(alpha, result, result_set)
                 u_index += 1
 
         if '' in result_set:
             result_set.remove('')
             result_set.update(self.first(w[1:], current_opened))
         return result_set
+
+    def _add_non_terminal_first(self, alpha: str, result: List[str], result_set: Set[str]) -> bool:
+        changed = False
+        for rule in self.grammar.rules():
+            if rule.left != alpha:
+                continue
+            if alpha in result_set:
+                changed = True
+                result_set.discard(alpha)
+            if ((alpha != rule.right[:1]) and
+                    (rule.right[:1] not in result_set)):
+                changed = True
+                result_set.add(rule.right[:1])
+                result.append(rule.right[:1])
+        return changed
 
 
 if __name__ == '__main__':

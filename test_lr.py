@@ -231,3 +231,22 @@ def test_algo_SABS(grammar):
     algo = LR()
     with pytest.raises(Exception) as e:
         algo.fit(grammar)
+
+
+@fixture(nonterms={*'SAB'}, terms={*'abc'},
+         rules={Rule('S', 'SABBAabc'), Rule('S', ''),
+                Rule('A', ''), Rule('B', '')}, start='S')
+def test_algo_SAB(grammar):
+    algo = LR()
+    algo.fit(grammar)
+    assert algo.predict('abc')       == True
+    assert algo.predict('a')         == False
+    assert algo.predict('b')         == False
+    assert algo.predict('c')         == False
+    assert algo.predict('bc')        == False
+    assert algo.predict('ab')        == False
+    assert algo.predict('ac')        == False
+    assert algo.predict('abcabc')    == True
+    assert algo.predict('abcabcabc') == True
+    assert algo.predict('abcab')     == False
+    assert algo.predict('')          == True

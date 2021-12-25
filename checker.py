@@ -28,7 +28,7 @@ def check(algorithm: Union[Earley, LR]) -> None:
     if grammar.start not in nonterms:
         raise Exception('Start symbol is not a nonterminal')
 
-    if not grammar.is_ks():
+    if not grammar.is_context_free():
         raise Exception('Wrong grammar')
 
     algorithm.fit(grammar)
