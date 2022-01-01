@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare tests
+        run: |
+          pip3 install pytest coverage
+
+      - name: Run tests
+        run: |
+          coverage run -m pytest 
+          coverage report --include=earley.py,lr.py
