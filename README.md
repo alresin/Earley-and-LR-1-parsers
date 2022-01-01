@@ -1,3 +1,3 @@
-# Алгоритмы Эрли и LR(1)
+# Earley and LR(1) algorthims
 
-Запустить файлы `earley.py` и `lr.py`.
+Just run `earley.py` and `lr.py` with python.
